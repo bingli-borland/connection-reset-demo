@@ -1,0 +1,9 @@
+server:
+  port: 8083
+logging:
+  file:
+    path:  /var/tomcat/logs/connection_reset_demo_server/
+    name: ${spring.application.name}.log
+spring:
+  application:
+    name: connection-reset-demo-client
