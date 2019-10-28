@@ -32,11 +32,10 @@ public class ApplicationCenter {
             LOGGER.info("headerName:[{}]==>{}", headerName, request.getHeader(headerName));
         }
         Enumeration<String> parameterNames = request.getParameterNames();
-        while (parameterNames.hasMoreElements()){
+        while (parameterNames.hasMoreElements()) {
             String parameterName = parameterNames.nextElement();
             LOGGER.info("parameterName:[{}]==>{}", parameterName, request.getParameter(parameterName));
         }
         return "server hello";
     }
-
 }

@@ -17,6 +17,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
@@ -40,6 +46,11 @@ public class ApplicationCenter {
         return builder.build();
     }
 
+    /**
+     * 测试半开连接及端口未监听的情况
+     * @param key
+     * @return
+     */
     @RequestMapping(path = "/hello", produces = MediaType.APPLICATION_JSON_VALUE)
     public String serverHello(@RequestParam("key")String key) {
         HttpHeaders headers = new HttpHeaders();
@@ -50,10 +61,50 @@ public class ApplicationCenter {
         map.add("timestamp", String.valueOf(System.currentTimeMillis()));
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 
-        String value = restTemplate.postForObject("http://192.168.0.103:8083/hello", request, String.class);
+        String value = restTemplate.postForObject("http://localhost:8083/hello", request, String.class);
         LOGGER.info("receive value:[{}]", value);
         return value;
     }
 
-
+    @RequestMapping(path = "/socket", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String connectSocket(@RequestParam("key")String key) {
+        Socket socket = null;
+        InputStream inputStream = null;
+        OutputStream outputStream = null;
+        try {
+            socket = new Socket();
+            socket.connect(new InetSocketAddress("127.0.0.1", 8084));
+            outputStream = socket.getOutputStream();
+            outputStream.write(key.getBytes(StandardCharsets.UTF_8));
+            inputStream = socket.getInputStream();
+            byte[] rcvBytes = new byte[1024];
+            inputStream.read(rcvBytes);
+            return new String(rcvBytes, StandardCharsets.UTF_8);
+        }catch (IOException e){
+            LOGGER.error("socket通信异常", e);
+        }finally {
+            if(outputStream != null){
+                try {
+                    outputStream.close();
+                }catch (IOException e){
+                    LOGGER.error("关闭outputStream异常", e);
+                }
+            }
+            if(inputStream != null){
+                try {
+                    inputStream.close();
+                }catch (IOException e){
+                    LOGGER.error("关闭inputStream异常", e);
+                }
+            }
+            if(socket != null){
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    LOGGER.error("关闭socket异常", e);
+                }
+            }
+        }
+        return "";
+    }
 }
