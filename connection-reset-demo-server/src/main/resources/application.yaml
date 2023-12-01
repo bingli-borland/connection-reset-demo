@@ -29,3 +29,4 @@ management:
       prometheus:
         bes:
           enabled: true
+          period: 4500

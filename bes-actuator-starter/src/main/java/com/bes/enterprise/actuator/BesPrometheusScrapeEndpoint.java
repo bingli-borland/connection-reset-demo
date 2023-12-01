@@ -9,33 +9,47 @@ import org.springframework.boot.actuate.metrics.export.prometheus.PrometheusScra
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Deque;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.LinkedBlockingDeque;
 
 
 @WebEndpoint(id = "prometheus")
 public class BesPrometheusScrapeEndpoint extends PrometheusScrapeEndpoint {
-    private static Lock lock = new ReentrantLock();
+
+    private Deque<String> metricCache = new LinkedBlockingDeque<>(5);
     private final CollectorRegistry collectorRegistry;
 
-    public BesPrometheusScrapeEndpoint(CollectorRegistry collectorRegistry) {
+    public BesPrometheusScrapeEndpoint(CollectorRegistry collectorRegistry, Long period) {
         super(collectorRegistry);
         this.collectorRegistry = collectorRegistry;
+        Timer t = new Timer();
+        t.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                metricCache.clear();
+            }
+        }, 100, period);
     }
 
     @ReadOperation(produces = TextFormat.CONTENT_TYPE_004)
     public String scrape() {
-        lock.lock();
-        try {
-            Writer writer = new StringWriter();
-            TextFormat.write004(writer, this.collectorRegistry.metricFamilySamples());
-            return writer.toString();
-        } catch (IOException ex) {
-            // This actually never happens since StringWriter::write() doesn't throw any
-            // IOException
-            throw new RuntimeException("Writing metrics failed", ex);
-        } finally {
-            lock.unlock();
+        String metric = metricCache.peek();
+        if (metric != null) {
+            return metric;
+        } else {
+            try {
+                Writer writer = new StringWriter();
+                TextFormat.write004(writer, this.collectorRegistry.metricFamilySamples());
+                metric = writer.toString();
+                metricCache.offerFirst(metric);
+                return metric;
+            } catch (IOException ex) {
+                // This actually never happens since StringWriter::write() doesn't throw any
+                // IOException
+                throw new RuntimeException("Writing metrics failed", ex);
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package com.bes.enterprise.actuator;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.prometheus.client.CollectorRegistry;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.prometheus.PrometheusMetricsExportAutoConfiguration;
@@ -18,8 +19,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
 @Configuration(proxyBeanMethods = false)
-@AutoConfigureBefore({ PrometheusMetricsExportAutoConfiguration.class})
+@AutoConfigureBefore({PrometheusMetricsExportAutoConfiguration.class})
 @AutoConfigureAfter(MetricsAutoConfiguration.class)
 @ConditionalOnBean(Clock.class)
 @ConditionalOnClass(PrometheusMeterRegistry.class)
@@ -32,12 +34,15 @@ public class BesPrometheusMetricsExportAutoConfiguration {
     @ConditionalOnAvailableEndpoint(endpoint = BesPrometheusScrapeEndpoint.class)
     public static class PrometheusScrapeEndpointConfiguration {
 
+        @Value("${management.metrics.export.prometheus.bes.period: 2000}")
+        private Long period;
+
         @Bean
         @ConditionalOnMissingBean
         @ConditionalOnProperty(prefix = "management.metrics.export.prometheus.bes", name = "enabled", havingValue = "true",
                 matchIfMissing = true)
         public PrometheusScrapeEndpoint prometheusEndpoint(CollectorRegistry collectorRegistry) {
-            return new BesPrometheusScrapeEndpoint(collectorRegistry);
+            return new BesPrometheusScrapeEndpoint(collectorRegistry, period);
         }
 
     }
