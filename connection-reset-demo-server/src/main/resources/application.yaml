@@ -1,9 +1,31 @@
 server:
   port: 8083
+#  ioMode: NIO
+  bes:
+    maxThreads: 300
+    basedir: mqpass-cproxy
 logging:
   file:
-    path:  /var/tomcat/logs/connection_reset_demo_server/
+    path:  ./logs/connection_reset_demo_server/
     name: ${spring.application.name}.log
 spring:
   application:
-    name: connection-reset-demo-client
+    name: connection-reset-demo-server
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  server:
+    port: 30000
+  metrics:
+    enable:
+      jvm:
+        threads: false
+    tags:
+      application: ${spring.application.name}
+    export:
+      prometheus:
+        bes:
+          enabled: true

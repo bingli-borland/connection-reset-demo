@@ -2,7 +2,7 @@ server:
   port: 8082
 logging:
   file:
-    path: /var/tomcat/logs/connection_reset_demo_client/
+    path: ./logs/connection_reset_demo_client/
     name: ${spring.application.name}.log
 spring:
   application:

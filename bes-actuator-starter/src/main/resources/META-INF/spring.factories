@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.bes.enterprise.actuator.BesPrometheusMetricsExportAutoConfiguration
+org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration=\
+com.bes.enterprise.actuator.BesManagementCustomizerConfiguration
