@@ -5,6 +5,8 @@ import com.bes.enterprise.springboot.embedded.BesServletWebServerFactory;
 import com.bes.enterprise.web.crane.AbstractProtocol;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration;
+import org.springframework.boot.actuate.autoconfigure.web.server.ConditionalOnManagementPort;
+import org.springframework.boot.actuate.autoconfigure.web.server.ManagementPortType;
 import org.springframework.boot.actuate.autoconfigure.web.server.ManagementServerProperties;
 import org.springframework.boot.actuate.autoconfigure.web.server.ManagementWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -16,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 
 @ManagementContextConfiguration
 @EnableConfigurationProperties({ManagementServerBesProperties.class})
+@ConditionalOnManagementPort(ManagementPortType.DIFFERENT)
 public class BesManagementCustomizerConfiguration {
 
     @Bean
